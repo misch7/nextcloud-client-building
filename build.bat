@@ -29,6 +29,7 @@ call :testEnv BUILD_TARGETS
 call :testEnv QT_PATH
 call :testEnv OPENSSL_PATH
 call :testEnv Png2Ico_EXECUTABLE
+call :testEnv VS_VERSION
 call :testEnv VCINSTALLDIR
 call :testEnv WIN_GIT_PATH
 

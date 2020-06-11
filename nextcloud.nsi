@@ -5,6 +5,7 @@
 !define APPLICATION_VENDOR "$%APPLICATION_VENDOR%"
 !define APPLICATION_EXECUTABLE "nextcloud.exe"
 !define APPLICATION_CMD_EXECUTABLE "nextcloudcmd.exe"
+!define APPLICATION_CONFIG_FILE "nextcloud.cfg"
 !define APPLICATION_DOMAIN "nextcloud.com"
 !define APPLICATION_LICENSE ""
 !define WIN_SETUP_BITMAP_PATH "$%PROJECT_PATH%\desktop\admin\win\nsi"
@@ -433,7 +434,7 @@ Section "${APPLICATION_NAME}" SEC_APPLICATION
       !finalize '"${CURRENT_PATH}\sign.bat" "%1"'
    !endif
    !if ${UPLOAD_BUILD} != 0
-      !finalize '"${CURRENT_PATH}\upload.bat" %1'  ; note: %1 quotes intenionally removed!
+      !finalize '"${CURRENT_PATH}\upload.bat" %1'  ; note: %1 quotes intentionally removed!
    !endif
 SectionEnd
 !endif ;IS_INNER_SIGN_UNINSTALLER
@@ -556,6 +557,28 @@ Section -post
    WriteRegStr ${MEMENTO_REGISTRY_ROOT} "${MEMENTO_REGISTRY_KEY}" "HelpLink" "https://${APPLICATION_DOMAIN}/"
    WriteRegDWORD ${MEMENTO_REGISTRY_ROOT} "${MEMENTO_REGISTRY_KEY}" "NoModify" "1"
    WriteRegDWORD ${MEMENTO_REGISTRY_ROOT} "${MEMENTO_REGISTRY_KEY}" "NoRepair" "1"
+
+
+   ;Respect user choices for the client's first launch.
+   Var /GLOBAL configFileName
+   StrCpy $configFileName "$APPDATA\${APPLICATION_NAME}\${APPLICATION_CONFIG_FILE}"
+
+   !ifdef OPTION_SECTION_SC_SHELL_EXT
+      Var /GLOBAL showInExplorerNavigationPane
+
+      ${If} ${SectionIsSelected} ${SEC_SHELL_EXT}
+         StrCpy $showInExplorerNavigationPane "true"
+      ${Else}
+         StrCpy $showInExplorerNavigationPane "false"
+      ${EndIf}
+
+      CreateDirectory "$APPDATA\${APPLICATION_NAME}"
+
+      SetShellVarContext all
+      DeleteINIStr "$configFileName" "General" "showInExplorerNavigationPane"
+      WriteIniStr "$configFileName" "General" "showInExplorerNavigationPane" "$showInExplorerNavigationPane"
+      SetShellVarContext current
+   !endif
 
 
    SetDetailsPrint textonly
@@ -810,6 +833,9 @@ Function .onInstSuccess
    ${AndIf} $InstallRunIfSilent == "yes"
      Call LaunchApplication
    ${EndIf}
+
+   ; FIX: Return zero on success (previously returned 1223 here)
+   SetErrorLevel 0
 FunctionEnd
 
 Function .onInstFailed

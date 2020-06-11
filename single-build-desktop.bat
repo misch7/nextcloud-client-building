@@ -26,6 +26,7 @@ echo "* USE_BRANDING=%USE_BRANDING%"
 echo "* BUILD_TYPE=%BUILD_TYPE%"
 echo "* BUILD_ARCH=%BUILD_ARCH%"
 echo "* CMAKE_GENERATOR=%CMAKE_GENERATOR%"
+echo "* CMAKE_GENERATOR_PLATFORM=%CMAKE_GENERATOR_PLATFORM%"
 echo "* CMAKE_EXTRA_FLAGS_DESKTOP=%CMAKE_EXTRA_FLAGS_DESKTOP%"
 echo "* PROJECT_PATH=%PROJECT_PATH%"
 
@@ -64,6 +65,7 @@ call :testEnv PROJECT_PATH
 call :testEnv BUILD_TYPE
 call :testEnv BUILD_ARCH
 call :testEnv CMAKE_GENERATOR
+call :testEnv CMAKE_GENERATOR_PLATFORM
 call :testEnv QT_PATH
 call :testEnv QT_BIN_PATH
 call :testEnv VCINSTALLDIR
@@ -113,14 +115,27 @@ rem Reference: https://ss64.com/nt/setlocal.html
 rem Reference: https://ss64.com/nt/start.html
 
 if "%PULL_DESKTOP%" == "1" (
-    echo "* git pull at %MY_REPO%/."
-    start "git pull" /D "%MY_REPO%/" /B /wait git pull --tags
+    Rem Checkout master first to have it clean for git pull
+    if "%CHECKOUT_DESKTOP%" == "1" (
+        echo "* git checkout master at %MY_REPO%/."
+        start "git checkout master" /D "%MY_REPO%/" /B /wait git checkout master
+    )
+    if !ERRORLEVEL! neq 0 goto onError
+
+    echo "* git pull master at %MY_REPO%/."
+    start "git pull master" /D "%MY_REPO%/" /B /wait git pull --tags origin master
 )
 if %ERRORLEVEL% neq 0 goto onError
 
 if "%CHECKOUT_DESKTOP%" == "1" (
     echo "* git checkout %TAG% at %MY_REPO%/."
     start "git checkout %TAG%" /D "%MY_REPO%/" /B /wait git checkout %TAG%
+    if !ERRORLEVEL! neq 0 goto onError
+
+    if "%PULL_DESKTOP%" == "1" (
+        echo "* git pull %TAG% at %MY_REPO%/."
+        start "git pull %TAG%" /D "%MY_REPO%/" /B /wait git pull
+    )
 )
 if %ERRORLEVEL% neq 0 goto onError
 
@@ -132,7 +147,7 @@ if %ERRORLEVEL% neq 0 goto onError
 del "%PROJECT_PATH%"\tmp
 
 echo "* Run cmake with CMAKE_INSTALL_PREFIX and CMAKE_BUILD_TYPE set at %MY_BUILD_PATH%."
-start "cmake.." /D "%MY_BUILD_PATH%" /B /wait cmake "-G%CMAKE_GENERATOR%" .. -DMIRALL_VERSION_SUFFIX="%VERSION_SUFFIX%" -DWITH_CRASHREPORTER=OFF -DMIRALL_VERSION_BUILD="%BUILD_DATE%" -DCMAKE_INSTALL_PREFIX="%MY_INSTALL_PATH%" -DCMAKE_BUILD_TYPE="%BUILD_TYPE%" -DNO_SHIBBOLETH=1 -DPng2Ico_EXECUTABLE="%Png2Ico_EXECUTABLE%" -DQTKEYCHAIN_LIBRARY="%QTKEYCHAIN_LIBRARY%" -DQTKEYCHAIN_INCLUDE_DIR="%QTKEYCHAIN_INCLUDE_DIR%" -DOPENSSL_ROOT_DIR="%OPENSSL_ROOT_DIR%" -DOPENSSL_INCLUDE_DIR="%OPENSSL_INCLUDE_DIR%" -DOPENSSL_LIBRARIES="%OPENSSL_LIBRARIES%" -DZLIB_INCLUDE_DIR="%ZLIB_INCLUDE_DIR%" -DZLIB_LIBRARY="%ZLIB_LIBRARY%" %CMAKE_EXTRA_FLAGS_DESKTOP%
+start "cmake.." /D "%MY_BUILD_PATH%" /B /wait cmake "-G%CMAKE_GENERATOR%" -DCMAKE_GENERATOR_PLATFORM="%CMAKE_GENERATOR_PLATFORM%" .. -DMIRALL_VERSION_SUFFIX="%VERSION_SUFFIX%" -DWITH_CRASHREPORTER=OFF -DMIRALL_VERSION_BUILD="%BUILD_DATE%" -DCMAKE_INSTALL_PREFIX="%MY_INSTALL_PATH%" -DCMAKE_BUILD_TYPE="%BUILD_TYPE%" -DNO_SHIBBOLETH=1 -DPng2Ico_EXECUTABLE="%Png2Ico_EXECUTABLE%" -DQTKEYCHAIN_LIBRARY="%QTKEYCHAIN_LIBRARY%" -DQTKEYCHAIN_INCLUDE_DIR="%QTKEYCHAIN_INCLUDE_DIR%" -DOPENSSL_ROOT_DIR="%OPENSSL_ROOT_DIR%" -DOPENSSL_INCLUDE_DIR="%OPENSSL_INCLUDE_DIR%" -DOPENSSL_LIBRARIES="%OPENSSL_LIBRARIES%" -DZLIB_INCLUDE_DIR="%ZLIB_INCLUDE_DIR%" -DZLIB_LIBRARY="%ZLIB_LIBRARY%" %CMAKE_EXTRA_FLAGS_DESKTOP%
 if %ERRORLEVEL% neq 0 goto onError
 
 echo "* Run cmake to compile and install."
@@ -145,7 +160,7 @@ if "%BUILD_TYPE%" == "Debug" (
     set WINDEPLOYQT_BUILD_TYPE=release
 )
 echo "* Run windeployqt to collect all %APP_NAME%.exe dependencies and output it to %MY_QT_DEPLOYMENT_PATH%/."
-start "windeployqt" /B /wait windeployqt.exe --%WINDEPLOYQT_BUILD_TYPE% --compiler-runtime "%MY_INSTALL_PATH%/bin/%APP_NAME%.exe" --dir "%MY_QT_DEPLOYMENT_PATH%/"
+start "windeployqt" /B /wait windeployqt.exe --%WINDEPLOYQT_BUILD_TYPE% --compiler-runtime "%MY_INSTALL_PATH%/bin/%APP_NAME%.exe" --dir "%MY_QT_DEPLOYMENT_PATH%/" --qmldir "%MY_REPO%/src/gui"
 if %ERRORLEVEL% neq 0 goto onError
 
 Rem ******************************************************************************************
