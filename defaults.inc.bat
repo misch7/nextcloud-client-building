@@ -32,7 +32,7 @@ rem Comma separated list of build targets (default: Win64, Win32)
 if "%BUILD_TARGETS%" == ""                  set BUILD_TARGETS=Win64,Win32
 
 if "%PROJECT_PATH%" == ""                   set PROJECT_PATH=c:/Nextcloud/client-building
-if "%QT_PATH%" == ""                        set QT_PATH=c:/Qt/5.12.8
+if "%QT_PATH%" == ""                        set QT_PATH=c:/Qt/5.12.9
 
                                             set PATH=c:/Nextcloud/tools/cmake/bin;c:/Nextcloud/tools;C:/Program Files (x86)/NSIS;%PATH%
 
@@ -102,9 +102,15 @@ if "%USE_BRANDING%" == "1" (
     set CHECKOUT_DESKTOP=0
 )
 
+Rem Updater: ON = build, OFF = don't build (default)
+if "%BUILD_UPDATER%" == ""                  set BUILD_UPDATER=OFF
+
 Rem ************************************************************************************************************************************************************************************
 Rem Installer Options: 1 = build (default), 0 = don't build
 if "%BUILD_INSTALLER%" == ""                set BUILD_INSTALLER=1
+
+Rem MSI installer: 1 = build, 0 = don't build (default)
+if "%BUILD_INSTALLER_MSI%" == ""            set BUILD_INSTALLER_MSI=0
 
 if "%INSTALLER_OUTPUT_PATH%" == ""          set INSTALLER_OUTPUT_PATH=%PROJECT_PATH%/daily/
 
@@ -128,7 +134,7 @@ Rem Upload build: 1 = enable (default), 0 = disable
 if "%UPLOAD_BUILD%" == ""                   set UPLOAD_BUILD=1
 
 Rem Delete build after successful upload: 1 = delete, 0 = keep (default)
-if "%UPLOAD_DELETE%" == ""                   set UPLOAD_DELETE=0
+if "%UPLOAD_DELETE%" == ""                  set UPLOAD_DELETE=0
 
 Rem: Note: Storing SFTP_PATH outside in Windows's env leads to trouble due to the preceding slash!
 if "%SFTP_PATH%" == ""                      set SFTP_PATH=/var/www/html/desktop/daily/Windows

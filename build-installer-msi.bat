@@ -2,7 +2,7 @@
 setlocal EnableDelayedExpansion
 
 Rem ******************************************************************************************
-rem 			"qtkeychain - Build for Windows 64-bit and 32-bit"
+rem 			"MSI installer - collect files for Windows 64-bit and/or 32-bit"
 Rem ******************************************************************************************
 
 call "%~dp0/defaults.inc.bat" %1
@@ -19,8 +19,8 @@ for %%G in (%BUILD_TARGETS%) do (
         set DLL_SUFFIX=
     )
 
-    echo "**** build qtkeychain for %%G (%~nx0)."
-    start "single-build-qtkeychain.bat %BUILD_TYPE% %%G" /D "%PROJECT_PATH%/" /B /wait "%~dp0/single-build-qtkeychain.bat" %BUILD_TYPE% %%G
+    echo "**** build MSI installer for %%G (%~nx0)."
+    start "single-build-installer-msi.bat %BUILD_TYPE% %%G" /D "%PROJECT_PATH%/" /B /wait "%~dp0/single-build-installer-msi.bat" %BUILD_TYPE% %%G
 
     if !ERRORLEVEL! neq 0 exit !ERRORLEVEL!
 )

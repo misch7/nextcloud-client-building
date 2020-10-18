@@ -1,5 +1,7 @@
 ;Nextcloud installer script.
 
+Unicode true
+
 !define APPLICATION_SHORTNAME "nextcloud"
 !define APPLICATION_NAME "Nextcloud"
 !define APPLICATION_VENDOR "$%APPLICATION_VENDOR%"
@@ -220,7 +222,17 @@ VIAddVersionKey /LANG=${LANG_ENGLISH} "FileVersion" "${VERSION}"
       StrCmp $LANGUAGE ${LANG_POLISH} Polish 0
       StrCmp $LANGUAGE ${LANG_TURKISH} Turkish 0
       StrCmp $LANGUAGE ${LANG_NORWEGIAN} Norwegian 0
-      StrCmp $LANGUAGE ${LANG_PORTUGUESEBR} Brazilian EndLanguageCmp
+      StrCmp $LANGUAGE ${LANG_PORTUGUESEBR} Brazilian 0
+      StrCmp $LANGUAGE ${LANG_CATALAN} Catalan 0
+      StrCmp $LANGUAGE ${LANG_FARSI} Farsi 0
+      StrCmp $LANGUAGE ${LANG_FRENCH} French 0
+      StrCmp $LANGUAGE ${LANG_HUNGARIAN} Hungarian 0
+      StrCmp $LANGUAGE ${LANG_PORTUGUESE} Portuguese 0
+      StrCmp $LANGUAGE ${LANG_RUSSIAN} Russian 0
+      StrCmp $LANGUAGE ${LANG_SIMPCHINESE} SimpChinese 0
+      StrCmp $LANGUAGE ${LANG_SWEDISH} Swedish 0
+      StrCmp $LANGUAGE ${LANG_THAI} Thai 0
+      StrCmp $LANGUAGE ${LANG_UKRAINIAN} Ukrainian EndLanguageCmp
       German:
       !include "${source_path}/admin/win/nsi/l10n\German.nsh"
       Goto EndLanguageCmp
@@ -265,6 +277,36 @@ VIAddVersionKey /LANG=${LANG_ENGLISH} "FileVersion" "${VERSION}"
       Goto EndLanguageCmp
       Norwegian:
       !include "${source_path}/admin/win/nsi/l10n\Norwegian.nsh"
+      Goto EndLanguageCmp
+      Catalan:
+      !include "${source_path}/admin/win/nsi/l10n\Catalan.nsh"
+      Goto EndLanguageCmp
+      Farsi:
+      !include "${source_path}/admin/win/nsi/l10n\Farsi.nsh"
+      Goto EndLanguageCmp
+      French:
+      !include "${source_path}/admin/win/nsi/l10n\French.nsh"
+      Goto EndLanguageCmp
+      Hungarian:
+      !include "${source_path}/admin/win/nsi/l10n\Hungarian.nsh"
+      Goto EndLanguageCmp
+      Portuguese:
+      !include "${source_path}/admin/win/nsi/l10n\Portuguese.nsh"
+      Goto EndLanguageCmp
+      Russian:
+      !include "${source_path}/admin/win/nsi/l10n\Russian.nsh"
+      Goto EndLanguageCmp
+      SimpChinese:
+      !include "${source_path}/admin/win/nsi/l10n\SimpChinese.nsh"
+      Goto EndLanguageCmp
+      Swedish:
+      !include "${source_path}/admin/win/nsi/l10n\Swedish.nsh"
+      Goto EndLanguageCmp
+      Thai:
+      !include "${source_path}/admin/win/nsi/l10n\Thai.nsh"
+      Goto EndLanguageCmp
+      Ukrainian:
+      !include "${source_path}/admin/win/nsi/l10n\Ukrainian.nsh"
       EndLanguageCmp:
 
    FunctionEnd
@@ -324,15 +366,16 @@ Function EnsureOwncloudShutdown
    !insertmacro CheckAndConfirmEndProcess "${APPLICATION_EXECUTABLE}"
 FunctionEnd
 
-Function InstallRedistributables
-   ${If} ${RunningX64}
-      ExecWait '"$OUTDIR\vcredist_x64.exe" /install /quiet /norestart'
-   ${Else}
-      ExecWait '"$OUTDIR\vcredist_x86.exe" /install /quiet /norestart'
-   ${EndIf}
-   Delete "$OUTDIR\vcredist_x86.exe"
-   Delete "$OUTDIR\vcredist_x64.exe"
-FunctionEnd
+;Redist DLLs now already deployed in installation dir and shellext statically linked
+;Function InstallRedistributables
+;   ${If} ${RunningX64}
+;      ExecWait '"$OUTDIR\vc_redist.x64.exe" /install /quiet /norestart'
+;   ${Else}
+;      ExecWait '"$OUTDIR\vc_redist.x86.exe" /install /quiet /norestart'
+;   ${EndIf}
+;   Delete "$OUTDIR\vc_redist.x86.exe"
+;   Delete "$OUTDIR\vc_redist.x64.exe"
+;FunctionEnd
 
 ##############################################################################
 #                                                                            #
@@ -446,21 +489,19 @@ SectionEnd
       DetailPrint $OPTION_SECTION_SC_SHELL_EXT_DetailPrint
       ;File "${VCREDISTPATH}\vcredist_x86.exe"  ;now collected by windeployqt
       ;File "${VCREDISTPATH}\vcredist_x64.exe"  ;now collected by windeployqt
-      Call InstallRedistributables
+      ;Call InstallRedistributables             ;Redist DLLs now already deployed in installation dir and shellext statically linked
       CreateDirectory "$INSTDIR\shellext"
       !define LIBRARY_COM
       !define LIBRARY_SHELL_EXTENSION
       !define LIBRARY_IGNORE_VERSION
       ${If} ${RunningX64}
          !define LIBRARY_X64
-         !insertmacro InstallLib DLL NOTSHARED REBOOT_PROTECTED "${SETUP_COLLECTION_PATH}\Win64\shellext\OCUtil.dll" "$INSTDIR\shellext\OCUtil.dll" "$INSTDIR\shellext"
-         !insertmacro InstallLib REGDLL NOTSHARED REBOOT_PROTECTED "${SETUP_COLLECTION_PATH}\Win64\shellext\OCOverlays.dll" "$INSTDIR\shellext\OCOverlays.dll" "$INSTDIR\shellext"
-         !insertmacro InstallLib REGDLL NOTSHARED REBOOT_PROTECTED "${SETUP_COLLECTION_PATH}\Win64\shellext\OCContextMenu.dll" "$INSTDIR\shellext\OCContextMenu.dll" "$INSTDIR\shellext"
+         !insertmacro InstallLib REGDLL NOTSHARED REBOOT_PROTECTED "${SETUP_COLLECTION_PATH}\Win64\shellext\NCOverlays.dll" "$INSTDIR\shellext\NCOverlays.dll" "$INSTDIR\shellext"
+         !insertmacro InstallLib REGDLL NOTSHARED REBOOT_PROTECTED "${SETUP_COLLECTION_PATH}\Win64\shellext\NCContextMenu.dll" "$INSTDIR\shellext\NCContextMenu.dll" "$INSTDIR\shellext"
          !undef LIBRARY_X64
      ${Else}
-         !insertmacro InstallLib DLL NOTSHARED REBOOT_PROTECTED "${SETUP_COLLECTION_PATH}\Win32\shellext\OCUtil.dll" "$INSTDIR\shellext\OCUtil.dll" "$INSTDIR\shellext"
-         !insertmacro InstallLib REGDLL NOTSHARED REBOOT_PROTECTED "${SETUP_COLLECTION_PATH}\Win32\shellext\OCOverlays.dll" "$INSTDIR\shellext\OCOverlays.dll" "$INSTDIR\shellext"
-         !insertmacro InstallLib REGDLL NOTSHARED REBOOT_PROTECTED "${SETUP_COLLECTION_PATH}\Win32\shellext\OCContextMenu.dll" "$INSTDIR\shellext\OCContextMenu.dll" "$INSTDIR\shellext"
+         !insertmacro InstallLib REGDLL NOTSHARED REBOOT_PROTECTED "${SETUP_COLLECTION_PATH}\Win32\shellext\NCOverlays.dll" "$INSTDIR\shellext\NCOverlays.dll" "$INSTDIR\shellext"
+         !insertmacro InstallLib REGDLL NOTSHARED REBOOT_PROTECTED "${SETUP_COLLECTION_PATH}\Win32\shellext\NCContextMenu.dll" "$INSTDIR\shellext\NCContextMenu.dll" "$INSTDIR\shellext"
       ${Endif}
       !undef LIBRARY_COM
       !undef LIBRARY_SHELL_EXTENSION
@@ -651,14 +692,12 @@ Section Uninstall
       ${If} ${HasSection} SEC_SHELL_EXT
         DetailPrint "Uninstalling x64 overlay DLLs"
         !define LIBRARY_X64
-        !insertmacro UnInstallLib REGDLL NOTSHARED REBOOT_PROTECTED "$INSTDIR\shellext\OCContextMenu.dll"
-        !insertmacro UnInstallLib REGDLL NOTSHARED REBOOT_PROTECTED "$INSTDIR\shellext\OCOverlays.dll"
-        !insertmacro UnInstallLib DLL NOTSHARED REBOOT_PROTECTED "$INSTDIR\shellext\OCUtil.dll"
+        !insertmacro UnInstallLib REGDLL NOTSHARED REBOOT_PROTECTED "$INSTDIR\shellext\NCContextMenu.dll"
+        !insertmacro UnInstallLib REGDLL NOTSHARED REBOOT_PROTECTED "$INSTDIR\shellext\NCOverlays.dll"
         !undef LIBRARY_X64
         DetailPrint "Uninstalling x86 overlay DLLs"
-        !insertmacro UnInstallLib REGDLL NOTSHARED REBOOT_PROTECTED "$INSTDIR\shellext\OCContextMenu.dll"
-        !insertmacro UnInstallLib REGDLL NOTSHARED REBOOT_PROTECTED "$INSTDIR\shellext\OCOverlays.dll"
-        !insertmacro UnInstallLib DLL NOTSHARED REBOOT_PROTECTED "$INSTDIR\shellext\OCUtil.dll"
+        !insertmacro UnInstallLib REGDLL NOTSHARED REBOOT_PROTECTED "$INSTDIR\shellext\NCContextMenu.dll"
+        !insertmacro UnInstallLib REGDLL NOTSHARED REBOOT_PROTECTED "$INSTDIR\shellext\NCOverlays.dll"
       ${EndIf}
       !undef LIBRARY_COM
       !undef LIBRARY_SHELL_EXTENSION

@@ -2,6 +2,55 @@
 
 This allows you to easily build the desktop client for 64-bit and 32-bit Windows.
 
+## Update: 2020-09-08
+
+MSI build support:
+- Will be available with NC 3.0.2 and up
+- Install the WiX Toolset build tools: https://wixtoolset.org/releases/
+- Set: `BUILD_INSTALLER_MSI=1`
+
+## Update: 2020-08-21
+
+Build support for NC 3.0:
+- Shell extensions changed by: https://github.com/nextcloud/desktop/pull/2288
+- New client-building branches to ease building: stable-2.5, stable-2.6, stable-3.0
+
+## Update: 2020-07-22
+
+Upgrade / new default version:
+- Qt 5.12.9
+
+The previous patch of the Qt 5.12.8 include file is not required anymore :)
+
+## Update: 2020-07-16
+
+Added new option to build the Updater (disabled by default):
+
+```
+BUILD_UPDATER=ON ./build.bat Release
+```
+
+## Update: 2020-06-20
+
+When building from a tag it is best to set PULL_DESKTOP to 0:
+
+```
+TAG_DESKTOP=v2.7.0-beta1 PULL_DESKTOP=0 ./build.bat Release
+```
+
+Otherwise the build might exit with the following error:
+
+```
+You are not currently on a branch.
+Please specify which branch you want to merge with.
+```
+
+## Update: 2020-06-13
+
+The VC Runtime redistributable filenames have changed in VS 2019.
+
+If you still want to use VS 2017 you may have to change them, see: https://github.com/nextcloud/client-building/pull/28
+
 ## Update: 2020-06-11
 
 Upgrades / new default versions:
@@ -10,7 +59,9 @@ Upgrades / new default versions:
 - Visual Studio 2019 (and 2017) support
 - can build Desktop client series 2.6 and 2.7 (QML)
 
-Note: You need to patch an include file of Qt 5.12.8 for use with MSVC, see section: Install list
+Note: You need to patch an include file of Qt 5.12.8 for use with MSVC, see: https://github.com/nextcloud/client-building/blob/e7b04ac00f0cfd7f9b3b4a3651ce0adc5ca07c29/README.md#install-list
+
+Patched file: https://raw.githubusercontent.com/nextcloud/client-building/e7b04ac00f0cfd7f9b3b4a3651ce0adc5ca07c29/Windows/Qt-5.12.8-QtCore-Patch/qlinkedlist.h
 
 Also note that the Qt Maintenance tool now requires you to register an Qt Account (free).
 
@@ -81,20 +132,12 @@ Optional:
 - [ ] Git bash (it comes with Git):
       https://git-scm.com/download/win
 
-- [ ] Qt 5.12.8 (select in the wizard: MSVC 2017 64-bit AND 32-bit and all the "Qt ..." options, not required: Debug Info Files):
+- [ ] Qt 5.12.9 (select in the wizard: MSVC 2017 64-bit AND 32-bit and all the "Qt ..." options, not required: Debug Info Files):
       http://download.qt.io/official_releases/online_installers/qt-unified-windows-x86-online.exe
 
       Install to: C:\Qt
 
   Note: MSVC 2017 is binary compatible with VS 2019, so don't be confused ;-)
-
-  You need to patch an include file of Qt 5.12.8 for use with MSVC: https://github.com/nextcloud/client-building/raw/master/Windows/Qt-5.12.8-QtCore-Patch/qlinkedlist.h
-
-      After installing Qt 5.12.8 put qlinkedlist.h in the following two folders:
-      - C:\Qt\5.12.8\msvc2017\include\QtCore
-      - C:\Qt\5.12.8\msvc2017_64\include\QtCore
-
-  It was modified to solve this bug: https://bugreports.qt.io/browse/QTBUG-81727
 
 - [ ] CMake 3.14.x (choose the ZIP version, extract and rename to: C:\Nextcloud\tools\cmake):
       https://cmake.org/download/
@@ -112,7 +155,7 @@ Optional:
       - 64-bit: C:\OpenSSL\Win64
       - 32-bit: C:\OpenSSL\Win32
 
-    Note: Qt 5.12.8 also includes the option to install OpenSSL 1.1.1 libraries from the Maintenance tool wizard.
+    Note: Qt 5.12.9 also includes the option to install OpenSSL 1.1.1 libraries from the Maintenance tool wizard.
           You may also use these libraries instead of the ones above but then you have to modify the paths in defaults.inc.bat
           and be sure to check for updates on a regular basis!
 
@@ -122,6 +165,12 @@ Optional:
 ## NSIS plugins to install
 - [ ] https://nsis.sourceforge.io/UAC_plug-in
 - [ ] https://nsis.sourceforge.io/NsProcess_plugin
+
+## To build MSI installers:
+- Above NSIS is not required, without NSIS set: `BUILD_INSTALLER=0`
+- MSI is available with NC 3.0.2 and up
+- Install the WiX Toolset build tools: https://wixtoolset.org/releases/
+- Set: `BUILD_INSTALLER_MSI=1`
 
 ## To upload builds
 - https://success.tanaza.com/s/article/How-to-use-SCP-command-on-Windows
@@ -285,14 +334,11 @@ OR:
   for them or they're critical for security and privacy:
   - all the binaries we produce:
     - nextcloud/ocsync.dll
-    - shellext/OCContextMenu.dll
-    - shellext/OCOverlays.dll
-    - shellext/OCUtil.dll
+    - shellext/NCContextMenu.dll
+    - shellext/NCOverlays.dll
     - nextcloud.exe
     - nextcloudcmd.exe
     - nextcloudsync.dll
-    - OCContextMenu.dll
-    - OCOverlays.dll
     - ocsync.dll
     - OCUtil.dll
     - qt5keychain.dll

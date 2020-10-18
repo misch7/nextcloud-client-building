@@ -101,7 +101,7 @@ Rem Note: Force the use Git Bash's mkdir.exe, usually found in C:\Program Files\
 if %ERRORLEVEL% neq 0 goto onError
 
 Rem Qt dependencies
-echo "* copy Qt libs (including qt5keychain.dll)."
+echo "* copy Qt libs (including qt5keychain%DLL_SUFFIX%.dll)."
 start "copy Qt libs" /D "%MY_COLLECT_PATH%/" /B /wait cp -af "%MY_INSTALL_PATH%/qt-libs/"* "%MY_COLLECT_PATH%/"
 if %ERRORLEVEL% neq 0 goto onError
 
@@ -119,16 +119,12 @@ start "copy ocsync.dll" /D "%MY_COLLECT_PATH%/" /B /wait cp -af "%MY_INSTALL_PAT
 if %ERRORLEVEL% neq 0 goto onError
 
 Rem shell extension dll's for Explorer integration (status icons)
-echo "* copy OCContextMenu.dll to %MY_COLLECT_PATH%/shellext/."
-start "copy OCContextMenu.dll" /D "%MY_COLLECT_PATH%/" /B /wait cp -af "%MY_INSTALL_PATH%/bin/OCContextMenu.dll" "%MY_COLLECT_PATH%/shellext/"
+echo "* move NCContextMenu.dll to %MY_COLLECT_PATH%/shellext/."
+start "move NCContextMenu.dll" /D "%MY_COLLECT_PATH%/" /B /wait mv -f "%MY_COLLECT_PATH%/NCContextMenu.dll" "%MY_COLLECT_PATH%/shellext/"
 if %ERRORLEVEL% neq 0 goto onError
 
-echo "* copy OCContextMenu.dll to %MY_COLLECT_PATH%/shellext/."
-start "copy OCOverlays.dll" /D "%MY_COLLECT_PATH%/" /B /wait cp -af "%MY_INSTALL_PATH%/bin/OCOverlays.dll" "%MY_COLLECT_PATH%/shellext/"
-if %ERRORLEVEL% neq 0 goto onError
-
-echo "* copy OCUtil.dll to %MY_COLLECT_PATH%/shellext/."
-start "copy OCUtil.dll" /D "%MY_COLLECT_PATH%/" /B /wait cp -af "%MY_INSTALL_PATH%/bin/OCUtil.dll" "%MY_COLLECT_PATH%/shellext/"
+echo "* move NCOverlays.dll to %MY_COLLECT_PATH%/shellext/."
+start "move NCOverlays.dll" /D "%MY_COLLECT_PATH%/" /B /wait mv -f "%MY_COLLECT_PATH%/NCOverlays.dll" "%MY_COLLECT_PATH%/shellext/"
 if %ERRORLEVEL% neq 0 goto onError
 
 Rem exclude system file list
@@ -198,6 +194,22 @@ echo "* copy optional extra resources (dll's, etc.) from %EXTRA_DEPLOY_PATH%/."
 if %ERRORLEVEL% neq 0 goto onError
 :skipDeployExtra
 
+Rem VC Environment Variables
+echo "** Calling vcvars64.bat to get the VC env vars:"
+call "%VCINSTALLDIR%\Auxiliary\Build\vcvars64.bat"
+
+Rem VC Redist
+echo "* copy VC Redist Runtime DLLs from %VCToolsRedistDir%/."
+if "%BUILD_ARCH%" == "Win64" (
+    start "copy VC Redist x64" /D "%MY_COLLECT_PATH%/" /B /wait cp -af "%VCToolsRedistDir%/x64/Microsoft.VC142.CRT/"* "%MY_COLLECT_PATH%/"
+) else (
+    start "copy VC Redist x86" /D "%MY_COLLECT_PATH%/" /B /wait cp -af "%VCToolsRedistDir%/x86/Microsoft.VC142.CRT/"* "%MY_COLLECT_PATH%/"
+)
+if %ERRORLEVEL% neq 0 goto onError
+
+echo "* remove VC Redist installer(s) from %MY_COLLECT_PATH%/."
+start "remove vc*redist*.exe" /D "%MY_COLLECT_PATH%/" /B /wait rm -f "%MY_COLLECT_PATH%"/vc*redist*.exe
+
 Rem ******************************************************************************************
 rem 			"code signing"
 Rem ******************************************************************************************
@@ -205,8 +217,7 @@ Rem ****************************************************************************
 if "%USE_CODE_SIGNING%" == "0" (
     echo "** Don't sign: Code signing is disabled by USE_CODE_SIGNING"
 ) else (
-    echo "** Calling vcvars64.bat to add signtool to the PATH:"
-    call "%VCINSTALLDIR%\Auxiliary\Build\vcvars64.bat"
+    echo "** Trying to find signtool in the PATH (VC env vars):"
 
     for %%i in (signtool.exe) do @set SIGNTOOL=%%~$PATH:i
 
@@ -221,17 +232,13 @@ if "%USE_CODE_SIGNING%" == "0" (
 
     for %%G in (
             "%APP_NAME_SANITIZED%/ocsync.dll"
-            "shellext/OCContextMenu.dll"
-            "shellext/OCOverlays.dll"
-            "shellext/OCUtil.dll"
+            "shellext/NCContextMenu.dll"
+            "shellext/NCOverlays.dll"
             "%APP_NAME_SANITIZED%.exe"
             "%APP_NAME_SANITIZED%cmd.exe"
             "%APP_NAME_SANITIZED%sync.dll"
-            "OCContextMenu.dll"
-            "OCOverlays.dll"
             "ocsync.dll"
-            "OCUtil.dll"
-            "qt5keychain.dll"
+            "qt5keychain%DLL_SUFFIX%.dll"
             "%LIBCRYPTO_DLL_FILENAME%"
             "%LIBSSL_DLL_FILENAME%"
             "zlib%DLL_SUFFIX%.dll"
